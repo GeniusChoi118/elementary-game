@@ -298,9 +298,9 @@ const Q = (() => {
     net: () => (R() < 0.5 ? netOX() : netOpposite()),
     edge: edgeQuestion,
   };
-  gens.all = () => gens[pick(["concept", "sketch", "net", "edge"])]();
+  gens.all = () => { const t = pick(["concept", "sketch", "net", "edge"]); const q = gens[t](); q.topic = t; return q; };
 
-  const make = (topic) => (gens[topic] || gens.all)();
+  const make = (topic) => { const q = (gens[topic] || gens.all)(); q.topic = q.topic || topic; return q; };
   function makeSeeded(topic, seed) {
     const old = R;
     R = mulberry32(seed);

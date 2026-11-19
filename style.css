@@ -286,3 +286,59 @@ canvas { width: 100%; height: auto; display: block; image-rendering: pixelated; 
   #qText { font-size: 1.05rem; }
   .choice { font-size: 0.95rem; padding: 12px 8px; }
 }
+
+/* ===== 수업 타이머 ===== */
+.timer { background: #0f766e; padding: 2px 8px; border-radius: 8px; font-size: 0.85rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.timer.warn { background: #dc2626; animation: blink 1s infinite; }
+
+/* ===== 마무리 화면 ===== */
+.summary-box {
+  margin: auto;
+  background: var(--panel);
+  border-radius: 20px;
+  padding: 26px 20px;
+  width: 100%; max-width: 520px;
+  text-align: center;
+}
+.summary-box h1 { font-size: 1.7rem; margin-bottom: 4px; }
+.summary-box h3 { text-align: left; margin: 20px 0 10px; font-size: 1.05rem; }
+.sum-hero { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 6px 0 14px; }
+.sum-stars { font-size: 2.2rem; letter-spacing: 4px; }
+.sum-badge {
+  display: inline-block; margin-top: 6px;
+  background: linear-gradient(90deg, #f97316, #facc15);
+  color: #1f2937; font-weight: 900;
+  padding: 6px 14px; border-radius: 99px;
+}
+.sum-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
+.stat { background: #1e1b2e; border-radius: 12px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.stat span { font-size: 1.3rem; }
+.stat b { font-size: 1.15rem; }
+.stat small { color: var(--muted); font-size: 0.75rem; }
+.topic-row { display: grid; grid-template-columns: 130px 1fr 74px; align-items: center; gap: 8px; margin: 8px 0; text-align: left; font-size: 0.9rem; }
+.topic-row .tval { text-align: right; font-variant-numeric: tabular-nums; }
+.sum-tip { margin-top: 10px; text-align: left; color: #fde68a; }
+.sum-points { text-align: left; padding-left: 20px; line-height: 1.8; }
+.muted { color: var(--muted); }
+.feelings { display: flex; gap: 10px; justify-content: center; }
+.feel { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 2rem; background: #1e1b2e; border: 3px solid #4b4570; padding: 10px 14px; flex: 1; }
+.feel small { font-size: 0.8rem; font-weight: 700; }
+.feel:hover:not(:disabled) { background: #3b3561; }
+.feel.selected { border-color: var(--primary); background: #3b3561; }
+.sum-thanks { margin: 12px 0 0; font-weight: 800; color: #86efac; }
+.summary-box .title-btns { margin-top: 22px; }
+
+/* ===== 시계 맞추기 ===== */
+.clock-set { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.clock-set svg { width: 200px; height: 200px; }
+.set-btns { display: grid; grid-template-columns: repeat(4, auto); gap: 6px; justify-content: center; }
+.set-btns button { background: #e5e7eb; color: #1f2937; padding: 10px 12px; font-size: 0.95rem; }
+.set-btns button:hover:not(:disabled) { background: #fed7aa; }
+.clock-pair { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.clock-pair figure { margin: 0; }
+.clock-pair figcaption { font-weight: 800; color: #6b7280; margin-top: 4px; }
+
+@media (max-width: 480px) {
+  .topic-row { grid-template-columns: 96px 1fr 64px; font-size: 0.8rem; }
+  .clock-set svg { width: 170px; height: 170px; }
+}

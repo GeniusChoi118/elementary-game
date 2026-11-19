@@ -1,14 +1,15 @@
 // =====================================================
-//  큐브 왕국 모험 - 직육면체 RPG
+//  수학 RPG 엔진 (게임 내용은 window.GAME 설정 파일에서 와요)
 // =====================================================
 (() => {
   "use strict";
+  const G = window.GAME;
 
   const $ = (id) => document.getElementById(id);
   const TILE = 48, VIEW_W = 15, VIEW_H = 11;
   const W = 44, H = 32;
   const STEP_MS = 140;
-  const SAVE_KEY = "cubeKingdomSave";
+  const SAVE_KEY = G.saveKey;
   const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
   const START = { x: 21, y: 14 };
   const REVIVE = { x: 23, y: 15 };
@@ -35,27 +36,16 @@
   // =====================================================
   //  지역
   // =====================================================
-  const ZONES = [
-    { id: "castle", name: "🏰 큐브 드래곤의 성", rect: [18, 1, 25, 9], topic: "all" },
-    { id: "forest", name: "🌲 개념의 숲", rect: [2, 2, 16, 13], topic: "concept",
-      monster: { emoji: "🍄", name: "꼭짓점 버섯" }, guardian: { emoji: "🐗", name: "숲의 수호자 멧돼지" } },
-    { id: "cave", name: "🦇 겨냥도 동굴", rect: [27, 2, 41, 13], topic: "sketch",
-      monster: { emoji: "🦇", name: "점선 박쥐" }, guardian: { emoji: "💀", name: "동굴의 수호자 해골" } },
-    { id: "desert", name: "🌵 전개도 사막", rect: [2, 19, 16, 29], topic: "net",
-      monster: { emoji: "🦂", name: "전개도 전갈" }, guardian: { emoji: "🐍", name: "사막의 수호자 큰뱀" } },
-    { id: "garden", name: "🗿 모서리 정원", rect: [27, 19, 41, 29], topic: "edge",
-      monster: { emoji: "🤖", name: "모서리 로봇" }, guardian: { emoji: "🗿", name: "정원의 수호자 석상" } },
-    { id: "village", name: "🏡 큐브 마을", rect: [17, 11, 26, 18] },
-  ];
+  const RECTS = {
+    castle: [18, 1, 25, 9], forest: [2, 2, 16, 13], cave: [27, 2, 41, 13],
+    desert: [2, 19, 16, 29], garden: [27, 19, 41, 29], village: [17, 11, 26, 18],
+  };
+  const ZONES = Object.keys(RECTS).map((id) => ({ id, rect: RECTS[id], ...G.zones[id] }));
   const PIECE_ZONES = ["forest", "cave", "desert", "garden"];
   const zoneAt = (x, y) => ZONES.find((z) => x >= z.rect[0] && x <= z.rect[2] && y >= z.rect[1] && y <= z.rect[3]);
   const zoneById = (id) => ZONES.find((z) => z.id === id);
 
-  const STATS = {
-    normal:   { hp: 2, dmg: 15, xp: 25,  coins: 10 },
-    guardian: { hp: 4, dmg: 20, xp: 80,  coins: 40 },
-    boss:     { hp: 8, dmg: 25, xp: 300, coins: 200 },
-  };
+  const STATS = G.stats;
 
   // =====================================================
   //  지도 만들기
@@ -156,7 +146,7 @@
         monsters.push({ id: id++, zone: zid, type, ...look, ...STATS[type], x, y, rx: x, ry: y, homeX: x, homeY: y, alive: true, respawnAt: 0 });
       });
     });
-    monsters.push({ id: id++, zone: "castle", type: "boss", emoji: "🐉", name: "큐브 드래곤", ...STATS.boss,
+    monsters.push({ id: id++, zone: "castle", type: "boss", emoji: G.boss.emoji, name: G.boss.name, ...STATS.boss,
       x: 21, y: 4, rx: 21, ry: 4, homeX: 21, homeY: 4, alive: true, respawnAt: 0 });
   }
 
@@ -171,6 +161,7 @@
       coins: 30, potions: 1, hints: 1,
       pieces: { forest: false, cave: false, desert: false, garden: false },
       bossDefeated: false, correct: 0, total: 0,
+      topics: {}, defeated: 0, playMs: 0, sessionDone: false, warned: {}, feeling: null,
     };
   }
   const xpNeed = (lv) => 50 + lv * 50;
@@ -195,7 +186,8 @@
     $("hudCoins").textContent = P.coins;
     $("hudPotions").textContent = P.potions;
     $("hudHints").textContent = P.hints;
-    $("hudPieces").textContent = PIECE_ZONES.map((z) => (P.pieces[z] ? "🟧" : "⬜")).join("");
+    $("hudPieces").textContent = PIECE_ZONES.map((z) => (P.pieces[z] ? G.piece.on : G.piece.off)).join("");
+    updateTimer();
   }
   const pieceCount = () => PIECE_ZONES.filter((z) => P.pieces[z]).length;
 
@@ -258,44 +250,20 @@
   //  NPC 대화
   // =====================================================
   function introTalk() {
-    const n = escapeHtml(P.name);
-    say("촌장 할아버지", [
-      `어서 오너라, <b>${n}</b>!`,
-      "큰일이야! 🐉 <b>큐브 드래곤</b>이 우리 마을의 <b>큐브 조각 4개</b>를 빼앗아 갔단다.",
-      "🌲숲, 🦇동굴, 🌵사막, 🗿정원의 <b>수호자</b>들이 조각을 지키고 있지. 수학 문제를 맞혀서 물리치면 조각을 되찾을 수 있어!",
-      "몬스터에게 부딪히면 <b>퀴즈 배틀</b>이 시작된단다. 맞히면 공격, 틀리면 다치니 조심하렴.",
-      "모르는 게 있으면 🦉<b>부엉이 박사</b>에게, 다치면 ⛲<b>분수</b>에 가 보렴. 조각 4개를 모으면 북쪽 성문이 열릴 거야. 행운을 빈다!",
-    ]);
+    say("촌장 할아버지", G.intro(escapeHtml(P.name)));
   }
 
   function talkElder() {
     const left = PIECE_ZONES.filter((z) => !P.pieces[z]).map((z) => zoneById(z).name);
-    if (P.bossDefeated) return say("촌장 할아버지", ["고맙다, 영웅이여! 덕분에 큐브 왕국이 평화로워졌어. 🎉", "몬스터들과 계속 연습해서 레벨을 올려 보렴!"]);
-    if (!left.length) return say("촌장 할아버지", ["큐브 조각을 모두 모았구나! 북쪽 성문이 열렸단다.", "🐉 큐브 드래곤은 모든 단원의 문제를 낸다. 물약을 챙겨 가거라!"]);
-    say("촌장 할아버지", [`지금까지 큐브 조각 <b>${pieceCount()} / 4</b>개를 모았구나.`, `남은 곳: ${left.join(", ")}`, "왕관을 쓴 👑 수호자를 찾아 물리치렴!"]);
+    const piece = G.piece.name;
+    if (P.bossDefeated) return say("촌장 할아버지", [`고맙다, 영웅이여! 덕분에 ${G.kingdom}이 평화로워졌어. 🎉`, "몬스터들과 계속 연습해서 레벨을 올려 보렴!"]);
+    if (!left.length) return say("촌장 할아버지", [`${piece}을 모두 모았구나! 북쪽 성문이 열렸단다.`, `${G.boss.emoji} ${G.boss.name}은 모든 문제를 섞어서 낸다. 물약을 챙겨 가거라!`]);
+    say("촌장 할아버지", [`지금까지 ${piece} <b>${pieceCount()} / 4</b>개를 모았구나.`, `남은 곳: ${left.join(", ")}`, "왕관을 쓴 👑 수호자를 찾아 물리치렴!"]);
   }
 
-  const NOTES = {
-    concept: ["📐 <b>직육면체</b>: 직사각형 6개로 둘러싸인 도형<br>📐 <b>정육면체</b>: 정사각형 6개로 둘러싸인 도형",
-      "둘 다 <b>면 6개 · 모서리 12개 · 꼭짓점 8개</b>예요!",
-      "정육면체는 직육면체예요. 하지만 직육면체는 정육면체가 <b>아닐 수도</b> 있어요.",
-      "서로 평행한 면(3쌍)을 <b>밑면</b>, 밑면과 수직인 면을 <b>옆면</b>이라고 해요. 한 면과 수직인 면은 4개!"],
-    sketch: ["<b>겨냥도</b>: 직육면체 모양을 잘 알 수 있게 그린 그림이에요.",
-      "보이는 모서리는 <b>실선</b>, 보이지 않는 모서리는 <b>점선</b>으로 그려요.",
-      "보이는 면 3 · 안 보이는 면 3<br>실선 모서리 9 · 점선 모서리 3<br>보이는 꼭짓점 7 · 안 보이는 꼭짓점 1"],
-    net: ["<b>전개도</b>: 정육면체를 모서리를 따라 잘라서 펼친 그림이에요. 모두 11가지가 있어요!",
-      "접었을 때 <b>겹치는 면이 없어야</b> 해요. 네모 4칸이 2×2로 뭉쳐 있으면 전개도가 아니에요.",
-      "일자로 이어진 3칸에서 <b>양 끝 칸</b>은 접으면 서로 마주 봐요. 마주 보는 면은 바로 붙어 있지 않아요!"],
-    edge: ["정육면체 모서리 길이의 합 = <b>한 모서리 × 12</b>",
-      "직육면체 모서리 길이의 합 = <b>(가로 + 세로 + 높이) × 4</b>",
-      "반대로 합을 알면 ÷ 12 를 해서 정육면체의 한 모서리를 구할 수 있어요."],
-  };
   function talkOwl() {
     ask("부엉이 박사", "부엉! 무엇을 공부해 볼까?", [
-      { label: "📐 개념", fn: () => say("부엉이 박사", NOTES.concept) },
-      { label: "📐 겨냥도", fn: () => say("부엉이 박사", NOTES.sketch) },
-      { label: "🧩 전개도", fn: () => say("부엉이 박사", NOTES.net) },
-      { label: "📏 모서리 길이", fn: () => say("부엉이 박사", NOTES.edge) },
+      ...G.notes.map((n) => ({ label: n.label, fn: () => say("부엉이 박사", n.pages) })),
       { label: "괜찮아요", fn: null },
     ]);
   }
@@ -352,7 +320,7 @@
     }
     if (ch === "G") {
       held.clear();
-      return say("🚪 성문", `성문이 굳게 닫혀 있어요. 큐브 조각이 4개 있어야 열려요. (지금 ${pieceCount()} / 4)`);
+      return say("🚪 성문", `성문이 굳게 닫혀 있어요. ${G.piece.name}이 4개 있어야 열려요. (지금 ${pieceCount()} / 4)`);
     }
     if (!WALKABLE.has(ch)) return;
 
@@ -367,7 +335,7 @@
     if (zid !== lastZone) {
       lastZone = zid;
       showBanner(z ? z.name : "🌼 들판");
-      if (zid === "castle" && !P.bossDefeated) say("🐉 큐브 드래곤", "크하하! 조각을 다 모아 오다니 대단하군. 하지만 내 문제는 쉽지 않을걸!");
+      if (zid === "castle" && !P.bossDefeated) say(`${G.boss.emoji} ${G.boss.name}`, G.boss.taunt);
     }
   }
 
@@ -538,8 +506,8 @@
         const [cx, cy] = toS(m.rx, m.ry);
         if (m.type === "boss") {
           shadow(cx + TILE / 2, cy + 34, 34);
-          drawEmoji("🐉", cx + TILE / 2, cy + bob, 84);
-          drawLabel("👑 큐브 드래곤", cx + TILE / 2, cy - 48, "rgba(185,28,28,0.95)");
+          drawEmoji(G.boss.emoji, cx + TILE / 2, cy + bob, 84);
+          drawLabel(`👑 ${G.boss.name}`, cx + TILE / 2, cy - 48, "rgba(185,28,28,0.95)");
         } else if (m.type === "guardian") {
           shadow(cx, cy + 19, 17);
           drawEmoji(m.emoji, cx, cy + bob, 42);
@@ -640,12 +608,30 @@
         </form>`;
       $("inputForm").addEventListener("submit", (e) => { e.preventDefault(); submit($("numInput").value.trim()); });
       setTimeout(() => $("numInput") && $("numInput").focus(), 50);
+    } else if (q.kind === "custom") {
+      box.innerHTML = "";
+      q.mount(box, submit);
     } else {
       box.innerHTML = "";
       $("qVisual").querySelectorAll(".net-cell").forEach((r) => r.addEventListener("click", () => submit(r.dataset.key)));
     }
     setItemsEnabled(true);
     $("battle").scrollTop = 0;
+  }
+
+  function answerTextOf(q) {
+    if (q.answerText !== undefined) return q.answerText;
+    if (q.kind === "input") return `${q.answer}${q.unit}`;
+    if (q.kind === "ox") return q.answer === "O" ? "⭕" : "❌";
+    if (q.kind === "click") return "";
+    return q.answer;
+  }
+
+  function recordAnswer(q, ok) {
+    const t = q.topic || (battle ? battle.topic : "all");
+    const st = P.topics[t] || (P.topics[t] = { c: 0, t: 0 });
+    st.t++;
+    if (ok) st.c++;
   }
 
   function floatText(targetId, text, cls) {
@@ -664,6 +650,7 @@
     battle.answered = true;
     const ok = String(value) === String(q.answer);
     P.total++;
+    recordAnswer(q, ok);
 
     const comboEl = $("bCombo");
     if (ok) {
@@ -697,7 +684,7 @@
     $("potionBtn").disabled = P.potions <= 0 || P.hp >= P.maxHp || P.hp <= 0;
 
     const won = battle.hp <= 0, lost = P.hp <= 0;
-    const answerText = q.kind === "input" ? `${q.answer}${q.unit}` : q.kind === "ox" ? (q.answer === "O" ? "⭕" : "❌") : q.kind === "click" ? "" : q.answer;
+    const answerText = answerTextOf(q);
     const fb = $("feedback");
     fb.className = ok ? "good" : "bad";
     fb.innerHTML = `
@@ -718,6 +705,11 @@
     save();
   }
 
+  // 시간이 다 됐는데 배틀 중이었다면, 배틀이 끝난 뒤 대화가 닫히면 마무리 화면을 보여요
+  function afterBusy() {
+    if (P && P.sessionDone && !battle && !duel && !dialog && playing) showSummary("time");
+  }
+
   function gainXp(n) {
     P.xp += n;
     let up = false;
@@ -736,6 +728,7 @@
     m.alive = false;
     m.respawnAt = performance.now() + 40000;
     P.coins += m.coins;
+    P.defeated++;
     const up = gainXp(m.xp);
     endBattle();
 
@@ -743,7 +736,7 @@
     if (up) pages.push(`⬆️ <b>레벨 업!</b> Lv.${P.lv}이 되었어요. 최대 체력이 ${P.maxHp}로 늘고 모두 회복됐어요!`);
     if (m.type === "guardian") {
       P.pieces[m.zone] = true;
-      pages.push(`🟧 <b>큐브 조각</b>을 되찾았어요! (${pieceCount()} / 4)`);
+      pages.push(`${G.piece.on} <b>${G.piece.name}</b>을 되찾았어요! (${pieceCount()} / 4)`);
       if (pieceCount() === 4 && !gateOpen()) {
         openGate();
         pages.push("쿠구구궁… 🏰 북쪽 성문이 열리는 소리가 들려요! 마을 위쪽으로 가 보세요.");
@@ -754,8 +747,8 @@
     if (m.type === "boss") {
       P.bossDefeated = true;
       save();
-      say("🎉 승리", pages, showEnding);
-    } else say("🎉 승리", pages);
+      say("🎉 승리", pages, () => showSummary("boss"));
+    } else say("🎉 승리", pages, afterBusy);
   }
 
   function loseBattle() {
@@ -768,7 +761,7 @@
     if (online()) MP.move(P.x, P.y, mover.face);
     updateHud(); save();
     onStepDone();
-    say("😵 기절", [`눈을 떠 보니 마을 분수 앞이에요…`, `코인 ${lost}개를 잃어버렸어요. 🦉 부엉이 박사에게 공부하고 다시 도전해 봐요!`]);
+    say("😵 기절", [`눈을 떠 보니 마을 분수 앞이에요…`, `코인 ${lost}개를 잃어버렸어요. 🦉 부엉이 박사에게 공부하고 다시 도전해 봐요!`], afterBusy);
   }
 
   $("potionBtn").addEventListener("click", () => {
@@ -798,7 +791,7 @@
     if (!battle) return;
     const name = battle.m.name;
     endBattle();
-    say("🏃 도망", `${name}에게서 무사히 도망쳤어요!`);
+    say("🏃 도망", `${name}에게서 무사히 도망쳤어요!`, afterBusy);
   });
 
   // =====================================================
@@ -808,14 +801,15 @@
   let pendingRoom = "";
   let mpHooked = false;
   const online = () => !!(window.MP && MP.room);
-  const cleanRoom = (r) => String(r || "").replace(/\s+/g, "").replace(/[.#$\[\]\/]/g, "-").slice(0, 12);
+  const ROOM_PREFIX = G.roomPrefix || "";
+  const cleanRoom = (r) => String(r || "").replace(/\s+/g, "").replace(/[.#$\[\]\/]/g, "-").slice(0, 12 - ROOM_PREFIX.length);
 
   function updateOnline() {
     const el = $("hudOnline");
     if (!online()) { el.classList.add("hidden"); return; }
     el.classList.remove("hidden");
     const n = Object.keys(MP.players).length + 1;
-    el.textContent = MP.connected ? `🌐 ${MP.room} · ${n}명` : `🌐 ${MP.room} · 연결 중…`;
+    el.textContent = MP.connected ? `🌐 ${P.room} · ${n}명` : `🌐 ${P.room} · 연결 중…`;
   }
 
   function connectRoom(room) {
@@ -824,7 +818,7 @@
       if (done) return;
       done = true;
       hookMP();
-      MP.join(room, { name: P.name, char: P.char, x: P.x, y: P.y, face: mover.face, lv: P.lv })
+      MP.join(ROOM_PREFIX + room, { name: P.name, char: P.char, x: P.x, y: P.y, face: mover.face, lv: P.lv })
         .then(() => { updateOnline(); showBanner(`🌐 ${room}반에 들어왔어요!`); })
         .catch((err) => {
           console.error(err);
@@ -947,6 +941,7 @@
     const ok = String(value) === String(duel.q.answer);
     P.total++;
     if (ok) P.correct++;
+    recordAnswer(duel.q, ok);
     MP.answer(ok);
     $("qAnswer").querySelectorAll("input, button").forEach((el) => (el.disabled = true));
     $("qVisual").classList.add("locked");
@@ -967,7 +962,7 @@
     else if (winner) { replay($("bPlayerCanvas"), "hit"); floatText("bMonster", "+1 ⭐", "good"); }
     const n = escapeHtml(duel.oppName);
     const title = iWon ? "🎉 내가 먼저 맞혔어요! +1점" : winner ? `😮 ${n}이(가) 먼저 맞혔어요!` : timeout ? "⏱️ 시간 초과!" : "😅 둘 다 틀렸어요!";
-    const answerText = q.kind === "input" ? `${q.answer}${q.unit}` : q.kind === "ox" ? (q.answer === "O" ? "⭕" : "❌") : q.kind === "click" ? "" : q.answer;
+    const answerText = answerTextOf(q);
     const fb = $("feedback");
     fb.className = iWon ? "good" : "bad";
     fb.innerHTML = `
@@ -1016,21 +1011,137 @@
     $("fleeBtn").textContent = "🏃 도망";
     battleCooldownUntil = performance.now() + 1500;
     updateHud();
+    afterBusy();
   }
 
   // =====================================================
-  //  엔딩
+  //  수업 시간 타이머
   // =====================================================
-  function showEnding() {
-    const rate = P.total ? Math.round((P.correct / P.total) * 100) : 0;
-    $("endingText").innerHTML = `${escapeHtml(P.name)} 용사님, 큐브 드래곤을 물리쳤어요!<br>Lv.${P.lv} · 맞힌 문제 ${P.correct} / ${P.total} (${rate}%)`;
-    $("ending").classList.remove("hidden");
-    playing = false;
+  const LIMIT_MS = G.sessionMinutes ? G.sessionMinutes * 60000 : 0;
+  let lastSaveMs = 0;
+
+  function fmt(ms) {
+    const sec = Math.max(0, Math.ceil(ms / 1000));
+    return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
   }
-  $("keepBtn").addEventListener("click", () => { $("ending").classList.add("hidden"); playing = true; });
-  $("restartBtn").addEventListener("click", () => {
+  function updateTimer() {
+    const el = $("hudTimer");
+    if (!LIMIT_MS || !P) { el.classList.add("hidden"); return; }
+    el.classList.remove("hidden");
+    const left = LIMIT_MS - P.playMs;
+    el.textContent = `⏱️ ${fmt(left)}`;
+    el.classList.toggle("warn", left <= 5 * 60000);
+  }
+
+  function tickSession(dt) {
+    if (!LIMIT_MS || !playing || P.sessionDone) return;
+    P.playMs += dt;
+    const left = LIMIT_MS - P.playMs;
+    if (left <= 5 * 60000 && !P.warned.five) {
+      P.warned.five = true;
+      showBanner("⏰ 5분 남았어요!");
+      if (!busy()) say("⏰ 알림", G.warn5 || "5분 남았어요! 지금 하고 있는 모험을 마무리해 봐요.");
+    }
+    if (left <= 60000 && !P.warned.one) {
+      P.warned.one = true;
+      showBanner("⏰ 1분 남았어요!");
+    }
+    if (left <= 0) {
+      P.sessionDone = true;
+      save();
+      showBanner("⏰ 시간이 다 됐어요!");
+      if (!battle && !duel) { if (dialog) closeDialog(); showSummary("time"); }
+    }
+    if (P.playMs - lastSaveMs > 5000) { lastSaveMs = P.playMs; save(); }
+    updateTimer();
+  }
+
+  // =====================================================
+  //  마무리 화면 (오늘의 모험 결과)
+  // =====================================================
+  function starsOf() {
+    const rate = P.total ? P.correct / P.total : 0;
+    let s = 1;
+    if (P.correct >= 10 && rate >= 0.6) s = 2;
+    if ((P.correct >= 20 && rate >= 0.8) || P.bossDefeated) s = 3;
+    if (P.total === 0) s = 0;
+    return s;
+  }
+  function badgeOf() {
+    const rate = P.total ? P.correct / P.total : 0;
+    if (P.bossDefeated) return { emoji: "🏆", name: `${G.kingdom}의 영웅` };
+    if (P.total >= 10 && rate >= 0.9) return { emoji: "🎯", name: "정확왕" };
+    if (P.correct >= 20) return { emoji: "📚", name: G.masterTitle };
+    if (pieceCount() >= 2) return { emoji: "🧭", name: "용감한 탐험가" };
+    return { emoji: "🌱", name: "씩씩한 도전자" };
+  }
+
+  function showSummary(reason) {
+    if (!P) return;
+    playing = false;
+    held.clear();
+    if (dialog) closeDialog();
+    if (online()) MP.updateMe({ busy: true });
+    const rate = P.total ? Math.round((P.correct / P.total) * 100) : 0;
+    const stars = starsOf();
+    const badge = badgeOf();
+    const n = escapeHtml(P.name);
+
+    $("sumTitle").textContent = reason === "boss" ? `🏆 ${G.kingdom}을 구했어요!` : "⏰ 오늘의 모험 끝!";
+    $("sumSub").innerHTML = reason === "boss"
+      ? `${n} 용사님, ${escapeHtml(G.boss.name)}을 물리쳤어요!`
+      : `${n} 용사님, ${G.sessionMinutes}분 동안 정말 열심히 했어요!`;
+    const cv = $("sumChar"), c2 = cv.getContext("2d");
+    c2.clearRect(0, 0, cv.width, cv.height);
+    drawCharacter(c2, 50, 106, 96, charById(P.char));
+    $("sumStars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+    $("sumBadge").textContent = `${badge.emoji} ${badge.name}`;
+    $("sumStats").innerHTML = [
+      ["✅", "맞힌 문제", `${P.correct}개`],
+      ["🎯", "정답률", `${rate}%`],
+      ["⚔️", "물리친 몬스터", `${P.defeated || 0}마리`],
+      [G.piece.on, G.piece.name, `${pieceCount()} / 4`],
+      ["⬆️", "레벨", `Lv.${P.lv}`],
+    ].map(([e, k, v]) => `<div class="stat"><span>${e}</span><b>${v}</b><small>${k}</small></div>`).join("");
+
+    const topicRows = Object.entries(G.topicNames)
+      .map(([id, name]) => ({ name, st: P.topics[id] }))
+      .filter((r) => r.st && r.st.t);
+    $("sumTopics").innerHTML = topicRows.length
+      ? topicRows.map(({ name, st }) => {
+          const pct = Math.round((st.c / st.t) * 100);
+          const mark = pct >= 80 ? "👍" : pct >= 50 ? "🙂" : "💪";
+          return `<div class="topic-row"><span class="tname">${name}</span><div class="bar"><div class="bar-fill xp" style="width:${pct}%"></div></div><span class="tval">${st.c}/${st.t} ${mark}</span></div>`;
+        }).join("")
+      : `<p class="muted">아직 푼 문제가 없어요.</p>`;
+    const weak = topicRows.filter((r) => r.st.t >= 2).sort((a, b) => a.st.c / a.st.t - b.st.c / b.st.t)[0];
+    $("sumTip").innerHTML = weak && weak.st.c / weak.st.t < 0.7
+      ? `💡 다음엔 <b>${weak.name}</b>을(를) 조금 더 연습해 봐요!`
+      : P.total ? "💡 모든 주제를 골고루 잘했어요! 최고예요!" : "";
+    $("sumPoints").innerHTML = G.summaryPoints.map((t) => `<li>${t}</li>`).join("");
+
+    document.querySelectorAll(".feel").forEach((b) => b.classList.toggle("selected", b.dataset.f === P.feeling));
+    $("sumThanks").classList.toggle("hidden", !P.feeling);
+    $("sumKeep").classList.toggle("hidden", !!P.sessionDone);
+    $("summary").classList.remove("hidden");
+    $("summary").scrollTop = 0;
+    save();
+  }
+
+  document.querySelectorAll(".feel").forEach((b) => b.addEventListener("click", () => {
+    P.feeling = b.dataset.f;
+    document.querySelectorAll(".feel").forEach((x) => x.classList.toggle("selected", x === b));
+    $("sumThanks").classList.remove("hidden");
+    save();
+  }));
+  $("sumKeep").addEventListener("click", () => {
+    $("summary").classList.add("hidden");
+    playing = true;
+    if (online()) MP.updateMe({ busy: false });
+  });
+  $("sumRestart").addEventListener("click", () => {
     if (!confirm("처음부터 다시 시작할까요? 지금 기록은 지워져요.")) return;
-    $("ending").classList.add("hidden");
+    $("summary").classList.add("hidden");
     startNew(P.name, P.char);
   });
 
@@ -1054,11 +1165,19 @@
     save();
     if (P.room) connectRoom(P.room);
     else if (online()) MP.leave();
+    lastSaveMs = P.playMs;
+    updateTimer();
   }
   function startNew(name, char) {
     begin(newPlayer(name, char));
     introTalk();
   }
+
+  // ----- 제목 -----
+  document.title = G.title;
+  $("titleEmoji").textContent = G.titleEmoji;
+  $("titleText").textContent = G.title;
+  $("titleSub").innerHTML = G.subtitle + (G.sessionMinutes ? `<br>⏱️ 활동 시간 ${G.sessionMinutes}분` : "");
 
   // ----- 캐릭터 고르기 -----
   let selectedChar = "m1";
@@ -1108,9 +1227,12 @@
   $("continueBtn").addEventListener("click", () => {
     pendingRoom = cleanRoom($("roomInput").value);
     const p = { ...newPlayer(saved.name), ...saved, char: selectedChar };
+    p.warned = p.warned || {};
+    p.topics = p.topics || {};
     if (!WALKABLE.has(buildMap()[p.y]?.[p.x] ?? "")) { p.x = START.x; p.y = START.y; }
     begin(p);
-    say("촌장 할아버지", `다시 왔구나, ${escapeHtml(p.name)}! 큐브 조각 ${pieceCount()} / 4개를 모았단다.`);
+    if (P.sessionDone) return showSummary("time");
+    say("촌장 할아버지", `다시 왔구나, ${escapeHtml(p.name)}! ${G.piece.name} ${pieceCount()} / 4개를 모았단다.`);
   });
   $("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("newBtn").click(); });
 
@@ -1131,6 +1253,7 @@
         const dir = [...held].pop();
         tryMove(...DIRV[dir]);
       }
+      tickSession(Math.min(dt, 1000));
       aiTimer += dt;
       if (aiTimer > 900) { aiTimer = 0; if (!busy()) monsterTick(now); }
       render(now);

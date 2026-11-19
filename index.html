@@ -14,6 +14,7 @@
         <span class="lv" id="hudLv">Lv.1</span>
         <span id="hudName"></span>
         <span id="hudOnline" class="online hidden"></span>
+        <span id="hudTimer" class="timer hidden"></span>
       </div>
       <div class="hud-bars">
         <div class="mini-bar" title="체력"><span>HP</span><div class="bar"><div id="hudHp" class="bar-fill hp"></div></div><b id="hudHpText"></b></div>
@@ -23,7 +24,7 @@
         <span title="코인">🪙 <b id="hudCoins">0</b></span>
         <span title="회복 물약">🧪 <b id="hudPotions">0</b></span>
         <span title="힌트 카드">💡 <b id="hudHints">0</b></span>
-        <span class="pieces" id="hudPieces" title="큐브 조각"></span>
+        <span class="pieces" id="hudPieces" title="모은 조각"></span>
       </div>
     </div>
 
@@ -91,9 +92,9 @@
   <!-- 시작 화면 -->
   <div id="title" class="overlay">
     <div class="title-box">
-      <div class="title-emoji">🐉📦🧒</div>
-      <h1>큐브 왕국 모험</h1>
-      <p class="sub">5학년 2학기 · 5단원 직육면체 RPG</p>
+      <div class="title-emoji" id="titleEmoji"></div>
+      <h1 id="titleText"></h1>
+      <p class="sub" id="titleSub"></p>
       <input id="nameInput" maxlength="8" placeholder="내 이름" autocomplete="off">
       <input id="roomInput" maxlength="12" placeholder="🌐 반 코드 (예: 5-2) · 비우면 혼자 하기" autocomplete="off">
       <div class="gender-tabs">
@@ -108,20 +109,44 @@
     </div>
   </div>
 
-  <!-- 엔딩 -->
-  <div id="ending" class="overlay hidden">
-    <div class="title-box">
-      <div class="title-emoji">🏆</div>
-      <h1>큐브 왕국을 구했어요!</h1>
-      <p class="sub" id="endingText"></p>
+  <!-- 마무리 화면 (오늘의 모험 결과) -->
+  <div id="summary" class="overlay hidden">
+    <div class="summary-box">
+      <h1 id="sumTitle"></h1>
+      <p class="sub" id="sumSub"></p>
+      <div class="sum-hero">
+        <canvas id="sumChar" width="100" height="110"></canvas>
+        <div>
+          <div class="sum-stars" id="sumStars"></div>
+          <div class="sum-badge" id="sumBadge"></div>
+        </div>
+      </div>
+      <div class="sum-stats" id="sumStats"></div>
+
+      <h3>📊 주제별 결과</h3>
+      <div id="sumTopics"></div>
+      <p class="sum-tip" id="sumTip"></p>
+
+      <h3>📝 오늘 배운 것</h3>
+      <ul class="sum-points" id="sumPoints"></ul>
+
+      <h3>💬 오늘 활동은 어땠나요?</h3>
+      <div class="feelings">
+        <button class="feel" data-f="easy">😀<small>쉬웠어요</small></button>
+        <button class="feel" data-f="ok">🙂<small>할 만했어요</small></button>
+        <button class="feel" data-f="hard">😥<small>어려웠어요</small></button>
+      </div>
+      <p class="sum-thanks hidden" id="sumThanks">고마워요! 🙌 이 화면을 선생님께 보여 주세요.</p>
+
       <div class="title-btns">
-        <button id="keepBtn">🌳 계속 탐험하기</button>
-        <button id="restartBtn" class="secondary">🔄 처음부터 다시</button>
+        <button id="sumKeep">🌳 계속 탐험하기</button>
+        <button id="sumRestart" class="secondary">🔄 처음부터 다시</button>
       </div>
     </div>
   </div>
 
   <script src="js/questions.js"></script>
+  <script src="js/cube-config.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/game.js"></script>
   <script type="module" src="js/multiplayer.js"></script>
