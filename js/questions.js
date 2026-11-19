@@ -3,12 +3,23 @@
 //  Q.make("concept" | "sketch" | "net" | "edge" | "all")
 // =====================================================
 const Q = (() => {
-  const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  // 대결 모드에서는 두 친구가 같은 문제를 받도록 '씨앗(seed)' 난수를 써요
+  let R = Math.random;
+  let seeded = false;
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rand = (min, max) => Math.floor(R() * (max - min + 1)) + min;
+  const pick = (arr) => arr[Math.floor(R() * arr.length)];
   function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(R() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
@@ -202,7 +213,7 @@ const Q = (() => {
   }
 
   function netOX() {
-    const valid = Math.random() < 0.5;
+    const valid = R() < 0.5;
     const cells = makeNet(valid);
     return {
       tag: "🧩 전개도", kind: "ox",
@@ -261,7 +272,7 @@ const Q = (() => {
         answer: String(sum),
         explain: `길이가 같은 모서리가 4개씩 3쌍 있어요. (${w} + ${d} + ${h}) × 4 = ${sum}(cm)` };
     }
-    const isCube = Math.random() < 0.5;
+    const isCube = R() < 0.5;
     const a = rand(3, 9);
     const dims = isCube ? [a, a, a] : shuffle([a, a, a + rand(1, 4)]);
     return { tag, kind: "choice",
@@ -282,12 +293,19 @@ const Q = (() => {
   const sketchDeck = makeDeck(SKETCH_POOL);
 
   const gens = {
-    concept: () => fromPool(conceptDeck(), "📐 개념"),
-    sketch: () => fromPool(sketchDeck(), "📐 겨냥도", sketchSVG()),
-    net: () => (Math.random() < 0.5 ? netOX() : netOpposite()),
+    concept: () => fromPool(seeded ? pick(CONCEPT_POOL) : conceptDeck(), "📐 개념"),
+    sketch: () => fromPool(seeded ? pick(SKETCH_POOL) : sketchDeck(), "📐 겨냥도", sketchSVG()),
+    net: () => (R() < 0.5 ? netOX() : netOpposite()),
     edge: edgeQuestion,
   };
   gens.all = () => gens[pick(["concept", "sketch", "net", "edge"])]();
 
-  return { make: (topic) => (gens[topic] || gens.all)() };
+  const make = (topic) => (gens[topic] || gens.all)();
+  function makeSeeded(topic, seed) {
+    const old = R;
+    R = mulberry32(seed);
+    seeded = true;
+    try { return make(topic); } finally { R = old; seeded = false; }
+  }
+  return { make, makeSeeded };
 })();

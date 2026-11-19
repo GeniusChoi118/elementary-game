@@ -13,6 +13,7 @@
       <div class="hud-left">
         <span class="lv" id="hudLv">Lv.1</span>
         <span id="hudName"></span>
+        <span id="hudOnline" class="online hidden"></span>
       </div>
       <div class="hud-bars">
         <div class="mini-bar" title="체력"><span>HP</span><div class="bar"><div id="hudHp" class="bar-fill hp"></div></div><b id="hudHpText"></b></div>
@@ -94,6 +95,7 @@
       <h1>큐브 왕국 모험</h1>
       <p class="sub">5학년 2학기 · 5단원 직육면체 RPG</p>
       <input id="nameInput" maxlength="8" placeholder="내 이름" autocomplete="off">
+      <input id="roomInput" maxlength="12" placeholder="🌐 반 코드 (예: 5-2) · 비우면 혼자 하기" autocomplete="off">
       <div class="gender-tabs">
         <button class="tab active" data-g="male">👦 남자</button>
         <button class="tab" data-g="female">👧 여자</button>
@@ -122,5 +124,6 @@
   <script src="js/questions.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/game.js"></script>
+  <script type="module" src="js/multiplayer.js"></script>
 </body>
 </html>

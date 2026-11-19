@@ -188,6 +188,7 @@
   function updateHud() {
     $("hudLv").textContent = `Lv.${P.lv}`;
     $("hudName").textContent = P.name;
+    updateOnline();
     $("hudHp").style.width = `${(P.hp / P.maxHp) * 100}%`;
     $("hudHpText").textContent = `${P.hp}/${P.maxHp}`;
     $("hudXp").style.width = `${Math.min(100, (P.xp / xpNeed(P.lv)) * 100)}%`;
@@ -327,12 +328,15 @@
   let battleCooldownUntil = 0;
   let playing = false;
 
-  const busy = () => !playing || !!dialog || !!battle;
+  const busy = () => !playing || !!dialog || !!battle || !!duel;
 
   function tryMove(dx, dy) {
     if (dx) mover.face = dx;
     const nx = P.x + dx, ny = P.y + dy;
     if (nx < 0 || ny < 0 || nx >= W || ny >= H) return;
+
+    const friend = online() && Object.values(MP.players).find((p) => p.x === nx && p.y === ny);
+    if (friend) { held.clear(); return askDuel(friend); }
 
     const npc = NPCS.find((n) => n.x === nx && n.y === ny);
     if (npc) { held.clear(); return ({ elder: talkElder, owl: talkOwl, bear: () => talkBear() })[npc.id](); }
@@ -354,6 +358,7 @@
 
     mover.moving = true; mover.fromX = P.x; mover.fromY = P.y; mover.t = 0;
     P.x = nx; P.y = ny;
+    if (online()) MP.move(P.x, P.y, mover.face);
   }
 
   function onStepDone() {
@@ -370,7 +375,7 @@
     if (!playing) return;
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) e.preventDefault();
     if (dialog && (e.code === "Enter" || e.code === "Space")) { advanceDialog(); return; }
-    if (battle && e.code === "Enter") { const nb = battle.answered && $("nextBtn"); if (nb && document.activeElement !== nb) { nb.click(); e.preventDefault(); } return; }
+    if ((battle || duel) && e.code === "Enter") { const nb = (battle ? battle.answered : true) && $("nextBtn"); if (nb && document.activeElement !== nb) { nb.click(); e.preventDefault(); } return; }
     if (KEYMAP[e.code]) held.add(KEYMAP[e.code]);
   });
   window.addEventListener("keyup", (e) => { if (KEYMAP[e.code]) held.delete(KEYMAP[e.code]); });
@@ -546,6 +551,16 @@
       } });
     });
 
+    if (online()) Object.values(MP.players).forEach((f) => {
+      f.rx += (f.x - f.rx) * 0.25; f.ry += (f.y - f.ry) * 0.25;
+      ents.push({ y: f.ry, draw: () => {
+        const [cx, cy] = toS(f.rx, f.ry);
+        shadow(cx, cy + 18, 14);
+        drawCharacter(ctx, cx, cy + 21, 46, charById(f.char), { flip: f.face < 0 });
+        drawLabel(`${f.busy ? "⚔️ " : ""}${f.name} Lv.${f.lv || 1}`, cx, cy - 34, "rgba(37,99,235,0.9)");
+      } });
+    });
+
     ents.push({ y: py, draw: () => {
       const [cx, cy] = toS(px, py);
       shadow(cx, cy + 18, 14);
@@ -562,6 +577,7 @@
 
   function startBattle(m) {
     const z = zoneById(m.zone);
+    if (online()) MP.updateMe({ busy: true });
     battle = { m, hp: m.hp, combo: 0, topic: z.topic, q: null, answered: false };
     $("battle").classList.remove("hidden");
     $("bMonster").classList.toggle("boss", m.type === "boss");
@@ -587,6 +603,7 @@
   }
 
   function setItemsEnabled(on) {
+    if (duel) { $("fleeBtn").disabled = false; return; }
     const q = battle && battle.q;
     $("potionBtn").disabled = !on || P.potions <= 0 || P.hp >= P.maxHp;
     $("hintBtn").disabled = !on || P.hints <= 0 || !q || q.kind !== "choice" || q.choices.length < 3 || battle.hintUsed;
@@ -594,10 +611,14 @@
   }
 
   function nextQuestion() {
-    const q = Q.make(battle.topic);
-    battle.q = q;
-    battle.answered = false;
-    battle.hintUsed = false;
+    renderQuestion(Q.make(battle.topic));
+  }
+
+  function renderQuestion(q) {
+    const cur = battle || duel;
+    cur.q = q;
+    cur.answered = false;
+    cur.hintUsed = false;
     $("qTag").textContent = q.tag;
     $("qText").innerHTML = q.kind === "ox" ? `${q.text}<br><small style="color:#6b7280">맞으면 ⭕, 틀리면 ❌</small>` : q.text;
     $("qVisual").innerHTML = q.visual || "";
@@ -615,7 +636,7 @@
         <form class="input-row" id="inputForm">
           <input type="number" id="numInput" inputmode="numeric" required autocomplete="off">
           <span class="unit">${q.unit}</span>
-          <button type="submit">공격! ⚔️</button>
+          <button type="submit">${duel ? "제출! ⚡" : "공격! ⚔️"}</button>
         </form>`;
       $("inputForm").addEventListener("submit", (e) => { e.preventDefault(); submit($("numInput").value.trim()); });
       setTimeout(() => $("numInput") && $("numInput").focus(), 50);
@@ -637,6 +658,7 @@
   function replay(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 
   function submit(value) {
+    if (duel) return duelSubmit(value);
     if (!battle || battle.answered) return;
     const q = battle.q, m = battle.m;
     battle.answered = true;
@@ -689,6 +711,7 @@
 
   function endBattle() {
     battle = null;
+    if (online()) MP.updateMe({ busy: false });
     $("battle").classList.add("hidden");
     battleCooldownUntil = performance.now() + 1500;
     updateHud();
@@ -742,6 +765,7 @@
     P.hp = P.maxHp;
     P.x = REVIVE.x; P.y = REVIVE.y;
     mover.moving = false;
+    if (online()) MP.move(P.x, P.y, mover.face);
     updateHud(); save();
     onStepDone();
     say("😵 기절", [`눈을 떠 보니 마을 분수 앞이에요…`, `코인 ${lost}개를 잃어버렸어요. 🦉 부엉이 박사에게 공부하고 다시 도전해 봐요!`]);
@@ -770,11 +794,229 @@
   });
 
   $("fleeBtn").addEventListener("click", () => {
+    if (duel) { if (confirm("대결을 포기할까요? 상대가 이겨요.")) MP.forfeit(); return; }
     if (!battle) return;
     const name = battle.m.name;
     endBattle();
     say("🏃 도망", `${name}에게서 무사히 도망쳤어요!`);
   });
+
+  // =====================================================
+  //  멀티플레이 - 친구와 퀴즈 대결
+  // =====================================================
+  let duel = null;
+  let pendingRoom = "";
+  let mpHooked = false;
+  const online = () => !!(window.MP && MP.room);
+  const cleanRoom = (r) => String(r || "").replace(/\s+/g, "").replace(/[.#$\[\]\/]/g, "-").slice(0, 12);
+
+  function updateOnline() {
+    const el = $("hudOnline");
+    if (!online()) { el.classList.add("hidden"); return; }
+    el.classList.remove("hidden");
+    const n = Object.keys(MP.players).length + 1;
+    el.textContent = MP.connected ? `🌐 ${MP.room} · ${n}명` : `🌐 ${MP.room} · 연결 중…`;
+  }
+
+  function connectRoom(room) {
+    let done = false;
+    const go = () => {
+      if (done) return;
+      done = true;
+      hookMP();
+      MP.join(room, { name: P.name, char: P.char, x: P.x, y: P.y, face: mover.face, lv: P.lv })
+        .then(() => { updateOnline(); showBanner(`🌐 ${room}반에 들어왔어요!`); })
+        .catch((err) => {
+          console.error(err);
+          MP.leave();
+          updateOnline();
+          say("🌐 온라인", "반 코드 서버에 들어가지 못했어요. 지금은 혼자 하기로 계속해요.<br><small>(선생님: Firebase 데이터베이스 규칙을 확인해 주세요)</small>");
+        });
+    };
+    if (window.MP) go();
+    else {
+      window.addEventListener("mp-ready", go, { once: true });
+      setTimeout(() => {
+        if (!done) { done = true; say("🌐 온라인", "온라인 서버에 연결하지 못했어요. 인터넷을 확인해 주세요. 지금은 혼자 하기로 계속해요."); }
+      }, 8000);
+    }
+  }
+
+  function hookMP() {
+    if (mpHooked) return;
+    mpHooked = true;
+    MP.isBusy = () => !playing || !!battle || !!duel;
+    MP.on("players", updateOnline);
+    MP.on("status", updateOnline);
+    MP.on("invite", ({ did, from }) => {
+      held.clear();
+      ask("⚔️ 대결 신청", `<b>${escapeHtml(from)}</b>이(가) 퀴즈 대결을 신청했어요!<br><small>먼저 3문제를 맞히면 승리!</small>`, [
+        { label: "⚔️ 수락", fn: () => MP.accept() },
+        { label: "거절", fn: () => MP.decline() },
+      ]);
+      dialog.inviteId = did;
+    });
+    MP.on("inviteCancelled", () => {
+      if (dialog && dialog.inviteId) { closeDialog(); say("⚔️ 대결", "대결 신청이 취소됐어요."); }
+    });
+    MP.on("inviteDeclined", ({ name, reason }) => {
+      if (dialog && dialog.waitingDuel) closeDialog();
+      const who = escapeHtml(name || "친구");
+      say("⚔️ 대결", reason === "expired" ? `${who}이(가) 대답하지 않았어요.` : reason === "left" ? "친구가 게임을 나갔어요." : `${who}은(는) 지금 대결할 수 없대요.`);
+    });
+    MP.on("duelStart", startDuel);
+    MP.on("roundStart", duelRound);
+    MP.on("roundResult", duelResult);
+    MP.on("duelEnd", duelEnd);
+  }
+
+  function askDuel(f) {
+    const n = escapeHtml(f.name);
+    if (f.busy) return say("친구", `${n}은(는) 지금 다른 배틀 중이에요. 조금 이따 다시 해 봐요!`);
+    ask("⚔️ 퀴즈 대결", `<b>${n}</b>에게 퀴즈 대결을 신청할까요?<br><small>같은 문제를 동시에 풀고, 먼저 3문제를 맞히면 승리!</small>`, [
+      { label: "⚔️ 신청하기", fn: () => {
+        MP.invite(f.id);
+        say("⚔️ 대결 신청", `${n}의 대답을 기다리는 중… ⏳`);
+        dialog.waitingDuel = true;
+      } },
+      { label: "취소", fn: null },
+    ]);
+  }
+
+  function updateDuelBars() {
+    $("bPlayerHp").style.width = `${(duel.me / 3) * 100}%`;
+    $("bPlayerHpText").textContent = `⭐ ${duel.me} / 3`;
+    $("bMonHp").style.width = `${(duel.opp / 3) * 100}%`;
+    $("bMonHpText").textContent = `⭐ ${duel.opp} / 3`;
+  }
+
+  function startDuel({ oppName, oppChar }) {
+    if (dialog) closeDialog();
+    held.clear();
+    duel = { oppName, me: 0, opp: 0, q: null, answered: false, tick: null };
+    $("battle").classList.remove("hidden");
+    $("bMonster").classList.remove("boss");
+    $("bMonEmoji").innerHTML = '<canvas id="bOppCanvas" class="f-char" width="100" height="110"></canvas>';
+    drawCharacter($("bOppCanvas").getContext("2d"), 50, 106, 96, charById(oppChar), { flip: true });
+    $("bMonName").textContent = oppName;
+    $("bPlayerName").textContent = P.name;
+    const bc = $("bPlayerCanvas"), bctx = bc.getContext("2d");
+    bctx.clearRect(0, 0, bc.width, bc.height);
+    drawCharacter(bctx, 50, 106, 96, charById(P.char));
+    $("potionBtn").classList.add("hidden");
+    $("hintBtn").classList.add("hidden");
+    $("fleeBtn").textContent = "🏳️ 포기";
+    $("fleeBtn").disabled = false;
+    $("bCombo").textContent = "⚔️ 퀴즈 대결! 먼저 3문제를 맞히면 승리!";
+    $("qTag").textContent = "⚔️ 대결";
+    $("qText").textContent = "곧 첫 문제가 나와요!";
+    $("qVisual").innerHTML = "";
+    $("qAnswer").innerHTML = "";
+    $("feedback").classList.add("hidden");
+    $("feedback").innerHTML = "";
+    updateDuelBars();
+  }
+
+  function duelRound({ round, seed, endsAt }) {
+    if (!duel) return;
+    renderQuestion(Q.makeSeeded("all", seed));
+    $("qTag").textContent = `⚔️ ${round + 1}번째 문제 · ${duel.q.tag}`;
+    clearInterval(duel.tick);
+    const show = () => {
+      const sec = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      $("bCombo").textContent = `⏱️ ${sec}초 · 먼저 맞히는 사람이 1점!`;
+    };
+    show();
+    duel.tick = setInterval(show, 250);
+  }
+
+  function lockQuestion(q, picked) {
+    $("qAnswer").querySelectorAll(".choice").forEach((b) => {
+      b.disabled = true;
+      if (b.dataset.v === String(q.answer)) b.classList.add("correct");
+      else if (picked !== undefined && b.dataset.v === String(picked)) b.classList.add("wrong");
+    });
+    $("qAnswer").querySelectorAll("input, button").forEach((el) => (el.disabled = true));
+    if (q.reveal) { $("qVisual").innerHTML = q.reveal(picked); $("qVisual").classList.add("locked"); }
+  }
+
+  function duelSubmit(value) {
+    if (!duel || duel.answered || !duel.q) return;
+    duel.answered = true;
+    duel.picked = value;
+    const ok = String(value) === String(duel.q.answer);
+    P.total++;
+    if (ok) P.correct++;
+    MP.answer(ok);
+    $("qAnswer").querySelectorAll("input, button").forEach((el) => (el.disabled = true));
+    $("qVisual").classList.add("locked");
+    const fb = $("feedback");
+    fb.className = ok ? "good" : "bad";
+    fb.innerHTML = `<div class="fb-title">${ok ? "정답! ⚡ 누가 더 빨랐을까요?" : "틀렸어요 😢 친구의 답을 기다려요…"}</div>`;
+  }
+
+  function duelResult({ iWon, winner, me, opp, timeout }) {
+    if (!duel) return;
+    clearInterval(duel.tick);
+    duel.me = me; duel.opp = opp;
+    const q = duel.q;
+    lockQuestion(q, duel.picked);
+    duel.answered = true;
+    updateDuelBars();
+    if (iWon) { replay($("bOppCanvas"), "hit"); floatText("bPlayer", "+1 ⭐", "good"); }
+    else if (winner) { replay($("bPlayerCanvas"), "hit"); floatText("bMonster", "+1 ⭐", "good"); }
+    const n = escapeHtml(duel.oppName);
+    const title = iWon ? "🎉 내가 먼저 맞혔어요! +1점" : winner ? `😮 ${n}이(가) 먼저 맞혔어요!` : timeout ? "⏱️ 시간 초과!" : "😅 둘 다 틀렸어요!";
+    const answerText = q.kind === "input" ? `${q.answer}${q.unit}` : q.kind === "ox" ? (q.answer === "O" ? "⭕" : "❌") : q.kind === "click" ? "" : q.answer;
+    const fb = $("feedback");
+    fb.className = iWon ? "good" : "bad";
+    fb.innerHTML = `
+      <div class="fb-title">${title}</div>
+      ${answerText ? `<div>정답: <b>${answerText}</b></div>` : ""}
+      <div>${q.explain}</div>
+      <div style="margin-top:8px;color:#6b7280">다음 문제 준비 중…</div>`;
+    $("bCombo").textContent = `나 ${me} : ${opp} ${duel.oppName}`;
+    replay($("bCombo"), "pop");
+  }
+
+  function duelEnd({ iWon, reason, iForfeited }) {
+    if (!duel) return;
+    clearInterval(duel.tick);
+    const n = escapeHtml(duel.oppName);
+    let msg;
+    if (iWon) {
+      P.coins += 30;
+      gainXp(40);
+      msg = reason === "left" ? `${n}이(가) 게임을 나가서 승리했어요! 🏆` : reason === "forfeit" ? `${n}이(가) 포기했어요. 승리! 🏆` : "🏆 대결 승리! 퀴즈 박사!";
+      msg += "<br>🪙 코인 +30 · ✨ 경험치 +40";
+    } else {
+      gainXp(10);
+      msg = iForfeited ? "대결을 포기했어요." : `${n}의 승리! 다음엔 꼭 이겨 봐요 💪`;
+      msg += "<br>✨ 참가 경험치 +10";
+    }
+    updateHud();
+    save();
+    if (online()) MP.updateMe({ lv: P.lv });
+    $("bCombo").textContent = iWon ? "🏆 승리!" : "대결 끝!";
+    const fb = $("feedback");
+    fb.className = iWon ? "good" : "bad";
+    fb.innerHTML = `<div class="fb-title">${iWon ? "🏆 승리!" : "대결 끝"}</div><div>${msg}</div><button id="nextBtn">닫기</button>`;
+    $("qAnswer").querySelectorAll("input, button").forEach((el) => (el.disabled = true));
+    $("fleeBtn").disabled = true;
+    $("nextBtn").addEventListener("click", closeDuel);
+    setTimeout(() => $("nextBtn") && $("nextBtn").scrollIntoView({ block: "nearest", behavior: "smooth" }), 50);
+  }
+
+  function closeDuel() {
+    if (duel) clearInterval(duel.tick);
+    duel = null;
+    $("battle").classList.add("hidden");
+    $("potionBtn").classList.remove("hidden");
+    $("hintBtn").classList.remove("hidden");
+    $("fleeBtn").textContent = "🏃 도망";
+    battleCooldownUntil = performance.now() + 1500;
+    updateHud();
+  }
 
   // =====================================================
   //  엔딩
@@ -806,9 +1048,12 @@
     mover.moving = false;
     $("title").classList.add("hidden");
     playing = true;
+    P.room = pendingRoom;
     updateHud();
     onStepDone();
     save();
+    if (P.room) connectRoom(P.room);
+    else if (online()) MP.leave();
   }
   function startNew(name, char) {
     begin(newPlayer(name, char));
@@ -852,13 +1097,16 @@
     $("continueBtn").classList.remove("hidden");
     $("continueBtn").textContent = `▶ 이어하기 (${saved.name} Lv.${saved.lv})`;
     $("nameInput").value = saved.name;
+    $("roomInput").value = saved.room || "";
   }
   $("newBtn").addEventListener("click", () => {
     const name = $("nameInput").value.trim() || "용사";
+    pendingRoom = cleanRoom($("roomInput").value);
     if (saved && !confirm("새로 시작하면 이어하기 기록이 지워져요. 괜찮나요?")) return;
     startNew(name, selectedChar);
   });
   $("continueBtn").addEventListener("click", () => {
+    pendingRoom = cleanRoom($("roomInput").value);
     const p = { ...newPlayer(saved.name), ...saved, char: selectedChar };
     if (!WALKABLE.has(buildMap()[p.y]?.[p.x] ?? "")) { p.x = START.x; p.y = START.y; }
     begin(p);

@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": "$room.length <= 12",
+        "players": {
+          "$pid": {
+            ".write": true,
+            ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 8 && newData.child('x').isNumber() && newData.child('y').isNumber())"
+          }
+        },
+        "invites": {
+          "$pid": { ".write": true }
+        },
+        "duels": {
+          "$did": { ".write": true }
+        }
+      }
+    }
+  }
+}
