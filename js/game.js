@@ -165,9 +165,9 @@
   // =====================================================
   let P = null;
 
-  function newPlayer(name) {
+  function newPlayer(name, char) {
     return {
-      name, x: START.x, y: START.y, hp: 100, maxHp: 100, lv: 1, xp: 0,
+      name, char, x: START.x, y: START.y, hp: 100, maxHp: 100, lv: 1, xp: 0,
       coins: 30, potions: 1, hints: 1,
       pieces: { forest: false, cave: false, desert: false, garden: false },
       bossDefeated: false, correct: 0, total: 0,
@@ -549,7 +549,7 @@
     ents.push({ y: py, draw: () => {
       const [cx, cy] = toS(px, py);
       shadow(cx, cy + 18, 14);
-      drawEmoji("🧒", cx, cy - (mover.moving ? Math.abs(Math.sin(k * Math.PI)) * 4 : 0), 36, mover.face < 0);
+      drawCharacter(ctx, cx, cy + 21, 46, charById(P.char), { flip: mover.face < 0, walk: mover.moving ? k : 0 });
     } });
 
     ents.sort((a, b) => a.y - b.y).forEach((e) => e.draw());
@@ -568,6 +568,9 @@
     $("bMonEmoji").textContent = m.emoji;
     $("bMonName").textContent = (m.type === "normal" ? "" : "👑 ") + m.name;
     $("bPlayerName").textContent = `${P.name} Lv.${P.lv}`;
+    const bc = $("bPlayerCanvas"), bctx = bc.getContext("2d");
+    bctx.clearRect(0, 0, bc.width, bc.height);
+    drawCharacter(bctx, 50, 106, 96, charById(P.char));
     $("bCombo").textContent = `⚔️ ${m.name}이(가) 나타났다!`;
     updateBattleBars();
     nextQuestion();
@@ -653,7 +656,7 @@
     } else {
       battle.combo = 0;
       P.hp = Math.max(0, P.hp - m.dmg);
-      replay($("bPlayer").querySelector(".f-emoji"), "hit");
+      replay($("bPlayerCanvas"), "hit");
       replay($("battle"), "flash");
       floatText("bPlayer", `-${m.dmg}`, "bad");
       comboEl.textContent = `💥 ${m.name}의 반격!`;
@@ -786,7 +789,7 @@
   $("restartBtn").addEventListener("click", () => {
     if (!confirm("처음부터 다시 시작할까요? 지금 기록은 지워져요.")) return;
     $("ending").classList.add("hidden");
-    startNew(P.name);
+    startNew(P.name, P.char);
   });
 
   // =====================================================
@@ -807,12 +810,44 @@
     onStepDone();
     save();
   }
-  function startNew(name) {
-    begin(newPlayer(name));
+  function startNew(name, char) {
+    begin(newPlayer(name, char));
     introTalk();
   }
 
+  // ----- 캐릭터 고르기 -----
+  let selectedChar = "m1";
+  let gender = "male";
+  function renderCharGrid() {
+    document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.g === gender));
+    const grid = $("charGrid");
+    grid.innerHTML = "";
+    CHARACTERS[gender].forEach((c) => {
+      const card = document.createElement("button");
+      card.className = "char-card" + (c.id === selectedChar ? " selected" : "");
+      const cv = document.createElement("canvas");
+      cv.width = 72; cv.height = 84;
+      drawCharacter(cv.getContext("2d"), 36, 80, 72, c);
+      const label = document.createElement("span");
+      label.textContent = c.name;
+      card.appendChild(cv);
+      card.appendChild(label);
+      card.addEventListener("click", () => { selectedChar = c.id; renderCharGrid(); });
+      grid.appendChild(card);
+    });
+  }
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+    gender = t.dataset.g;
+    if (!CHARACTERS[gender].some((c) => c.id === selectedChar)) selectedChar = CHARACTERS[gender][0].id;
+    renderCharGrid();
+  }));
+
   const saved = loadSave();
+  if (saved && saved.char) {
+    selectedChar = charById(saved.char).id;
+    gender = selectedChar.startsWith("f") ? "female" : "male";
+  }
+  renderCharGrid();
   if (saved) {
     $("continueBtn").classList.remove("hidden");
     $("continueBtn").textContent = `▶ 이어하기 (${saved.name} Lv.${saved.lv})`;
@@ -821,10 +856,10 @@
   $("newBtn").addEventListener("click", () => {
     const name = $("nameInput").value.trim() || "용사";
     if (saved && !confirm("새로 시작하면 이어하기 기록이 지워져요. 괜찮나요?")) return;
-    startNew(name);
+    startNew(name, selectedChar);
   });
   $("continueBtn").addEventListener("click", () => {
-    const p = { ...newPlayer(saved.name), ...saved };
+    const p = { ...newPlayer(saved.name), ...saved, char: selectedChar };
     if (!WALKABLE.has(buildMap()[p.y]?.[p.x] ?? "")) { p.x = START.x; p.y = START.y; }
     begin(p);
     say("촌장 할아버지", `다시 왔구나, ${escapeHtml(p.name)}! 큐브 조각 ${pieceCount()} / 4개를 모았단다.`);

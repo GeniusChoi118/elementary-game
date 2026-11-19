@@ -57,7 +57,7 @@
       <div class="arena">
         <div class="fighter" id="bPlayer">
           <div class="f-name" id="bPlayerName"></div>
-          <div class="f-emoji">🧒</div>
+          <canvas id="bPlayerCanvas" class="f-char" width="100" height="110"></canvas>
           <div class="bar"><div id="bPlayerHp" class="bar-fill hp"></div></div>
           <div class="bar-text" id="bPlayerHpText"></div>
         </div>
@@ -94,6 +94,11 @@
       <h1>큐브 왕국 모험</h1>
       <p class="sub">5학년 2학기 · 5단원 직육면체 RPG</p>
       <input id="nameInput" maxlength="8" placeholder="내 이름" autocomplete="off">
+      <div class="gender-tabs">
+        <button class="tab active" data-g="male">👦 남자</button>
+        <button class="tab" data-g="female">👧 여자</button>
+      </div>
+      <div class="char-grid" id="charGrid"></div>
       <div class="title-btns">
         <button id="newBtn">⚔️ 새로 시작</button>
         <button id="continueBtn" class="secondary hidden">▶ 이어하기</button>
@@ -115,6 +120,7 @@
   </div>
 
   <script src="js/questions.js"></script>
+  <script src="js/characters.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>
