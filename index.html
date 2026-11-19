@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>큐브 왕국 모험</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 상단 상태창 -->
+    <div class="hud">
+      <div class="hud-left">
+        <span class="lv" id="hudLv">Lv.1</span>
+        <span id="hudName"></span>
+      </div>
+      <div class="hud-bars">
+        <div class="mini-bar" title="체력"><span>HP</span><div class="bar"><div id="hudHp" class="bar-fill hp"></div></div><b id="hudHpText"></b></div>
+        <div class="mini-bar" title="경험치"><span>XP</span><div class="bar"><div id="hudXp" class="bar-fill xp"></div></div></div>
+      </div>
+      <div class="hud-right">
+        <span title="코인">🪙 <b id="hudCoins">0</b></span>
+        <span title="회복 물약">🧪 <b id="hudPotions">0</b></span>
+        <span title="힌트 카드">💡 <b id="hudHints">0</b></span>
+        <span class="pieces" id="hudPieces" title="큐브 조각"></span>
+      </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div class="stage">
+      <canvas id="game"></canvas>
+      <div id="zoneBanner" class="zone-banner"></div>
+
+      <!-- 대화창 -->
+      <div id="dialog" class="dialog hidden">
+        <div class="dlg-name" id="dlgName"></div>
+        <div class="dlg-text" id="dlgText"></div>
+        <div class="dlg-options" id="dlgOptions"></div>
+        <div class="dlg-next" id="dlgNext">▼</div>
+      </div>
+    </div>
+
+    <!-- 터치 방향키 -->
+    <div class="dpad" id="dpad">
+      <button data-dir="up">▲</button>
+      <button data-dir="left">◀</button>
+      <button data-dir="down">▼</button>
+      <button data-dir="right">▶</button>
+    </div>
+
+    <p class="help">⌨️ 방향키 / WASD 이동 · 몬스터에게 부딪히면 퀴즈 배틀 · Enter 대화 넘기기</p>
+  </div>
+
+  <!-- 배틀 -->
+  <div id="battle" class="overlay hidden">
+    <div class="battle-box">
+      <div class="arena">
+        <div class="fighter" id="bPlayer">
+          <div class="f-name" id="bPlayerName"></div>
+          <div class="f-emoji">🧒</div>
+          <div class="bar"><div id="bPlayerHp" class="bar-fill hp"></div></div>
+          <div class="bar-text" id="bPlayerHpText"></div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="fighter" id="bMonster">
+          <div class="f-name" id="bMonName"></div>
+          <div class="f-emoji" id="bMonEmoji"></div>
+          <div class="bar"><div id="bMonHp" class="bar-fill mon"></div></div>
+          <div class="bar-text" id="bMonHpText"></div>
+        </div>
+      </div>
+      <div id="bCombo" class="combo"></div>
+
+      <div class="qcard" id="qcard">
+        <span class="tag" id="qTag"></span>
+        <h2 id="qText"></h2>
+        <div id="qVisual"></div>
+        <div id="qAnswer"></div>
+        <div id="feedback" class="hidden"></div>
+      </div>
+
+      <div class="items">
+        <button id="potionBtn" class="item-btn">🧪 물약</button>
+        <button id="hintBtn" class="item-btn">💡 힌트</button>
+        <button id="fleeBtn" class="item-btn">🏃 도망</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 시작 화면 -->
+  <div id="title" class="overlay">
+    <div class="title-box">
+      <div class="title-emoji">🐉📦🧒</div>
+      <h1>큐브 왕국 모험</h1>
+      <p class="sub">5학년 2학기 · 5단원 직육면체 RPG</p>
+      <input id="nameInput" maxlength="8" placeholder="내 이름" autocomplete="off">
+      <div class="title-btns">
+        <button id="newBtn">⚔️ 새로 시작</button>
+        <button id="continueBtn" class="secondary hidden">▶ 이어하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 엔딩 -->
+  <div id="ending" class="overlay hidden">
+    <div class="title-box">
+      <div class="title-emoji">🏆</div>
+      <h1>큐브 왕국을 구했어요!</h1>
+      <p class="sub" id="endingText"></p>
+      <div class="title-btns">
+        <button id="keepBtn">🌳 계속 탐험하기</button>
+        <button id="restartBtn" class="secondary">🔄 처음부터 다시</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/questions.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
