@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://elementary-game.pages.dev/sitemap.xml

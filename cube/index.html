@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>큐브 왕국 모험</title>
+  <meta name="description" content="5학년 2학기 5단원 직육면체·정육면체를 RPG 퀴즈로 복습하는 무료 교육 게임. 겨냥도, 전개도, 모서리 길이 문제를 몬스터 배틀로 풀어요.">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <meta name="google-adsense-account" content="ca-pub-3145881267243661">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3145881267243661"
+     crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 상단 상태창 -->
+    <div class="hud">
+      <div class="hud-left">
+        <span class="lv" id="hudLv">Lv.1</span>
+        <span id="hudName"></span>
+        <span id="hudOnline" class="online hidden"></span>
+        <span id="hudTimer" class="timer hidden"></span>
+      </div>
+      <div class="hud-bars">
+        <div class="mini-bar" title="체력"><span>HP</span><div class="bar"><div id="hudHp" class="bar-fill hp"></div></div><b id="hudHpText"></b></div>
+        <div class="mini-bar" title="경험치"><span>XP</span><div class="bar"><div id="hudXp" class="bar-fill xp"></div></div></div>
+      </div>
+      <div class="hud-right">
+        <span title="코인">🪙 <b id="hudCoins">0</b></span>
+        <span title="회복 물약">🧪 <b id="hudPotions">0</b></span>
+        <span title="힌트 카드">💡 <b id="hudHints">0</b></span>
+        <span class="pieces" id="hudPieces" title="모은 조각"></span>
+      </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div class="stage">
+      <canvas id="game"></canvas>
+      <div id="zoneBanner" class="zone-banner"></div>
+
+      <!-- 대화창 -->
+      <div id="dialog" class="dialog hidden">
+        <div class="dlg-name" id="dlgName"></div>
+        <div class="dlg-text" id="dlgText"></div>
+        <div class="dlg-options" id="dlgOptions"></div>
+        <div class="dlg-next" id="dlgNext">▼</div>
+      </div>
+    </div>
+
+    <!-- 터치 방향키 -->
+    <div class="dpad" id="dpad">
+      <button data-dir="up">▲</button>
+      <button data-dir="left">◀</button>
+      <button data-dir="down">▼</button>
+      <button data-dir="right">▶</button>
+    </div>
+
+    <p class="help"><a href="../">🏠 홈</a> · <a href="../learn/cube/">📖 개념 정리</a> · <a href="../guide/">👩‍🏫 수업 활용</a><br>⌨️ 방향키 / WASD 이동 · 몬스터에게 부딪히면 퀴즈 배틀 · Enter 대화 넘기기</p>
+  </div>
+
+  <!-- 배틀 -->
+  <div id="battle" class="overlay hidden">
+    <div class="battle-box">
+      <div class="arena">
+        <div class="fighter" id="bPlayer">
+          <div class="f-name" id="bPlayerName"></div>
+          <canvas id="bPlayerCanvas" class="f-char" width="100" height="110"></canvas>
+          <div class="bar"><div id="bPlayerHp" class="bar-fill hp"></div></div>
+          <div class="bar-text" id="bPlayerHpText"></div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="fighter" id="bMonster">
+          <div class="f-name" id="bMonName"></div>
+          <div class="f-emoji" id="bMonEmoji"></div>
+          <div class="bar"><div id="bMonHp" class="bar-fill mon"></div></div>
+          <div class="bar-text" id="bMonHpText"></div>
+        </div>
+      </div>
+      <div id="bCombo" class="combo"></div>
+
+      <div class="qcard" id="qcard">
+        <span class="tag" id="qTag"></span>
+        <h2 id="qText"></h2>
+        <div id="qVisual"></div>
+        <div id="qAnswer"></div>
+        <div id="feedback" class="hidden"></div>
+      </div>
+
+      <div class="items">
+        <button id="potionBtn" class="item-btn">🧪 물약</button>
+        <button id="hintBtn" class="item-btn">💡 힌트</button>
+        <button id="fleeBtn" class="item-btn">🏃 도망</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 시작 화면 -->
+  <div id="title" class="overlay">
+    <div class="title-box">
+      <div class="title-emoji" id="titleEmoji"></div>
+      <h1 id="titleText"></h1>
+      <p class="sub" id="titleSub"></p>
+      <input id="nameInput" maxlength="8" placeholder="내 이름" autocomplete="off">
+      <input id="roomInput" maxlength="12" placeholder="🌐 반 코드 (예: 5-2) · 비우면 혼자 하기" autocomplete="off">
+      <div class="gender-tabs">
+        <button class="tab active" data-g="male">👦 남자</button>
+        <button class="tab" data-g="female">👧 여자</button>
+      </div>
+      <div class="char-grid" id="charGrid"></div>
+      <div class="title-btns">
+        <button id="newBtn">⚔️ 새로 시작</button>
+        <button id="continueBtn" class="secondary hidden">▶ 이어하기</button>
+      </div>
+      <p class="title-links"><a href="../learn/cube/">📖 개념 정리 먼저 보기</a> · <a href="../">🏠 홈으로</a></p>
+    </div>
+  </div>
+
+  <!-- 마무리 화면 (오늘의 모험 결과) -->
+  <div id="summary" class="overlay hidden">
+    <div class="summary-box">
+      <h1 id="sumTitle"></h1>
+      <p class="sub" id="sumSub"></p>
+      <div class="sum-hero">
+        <canvas id="sumChar" width="100" height="110"></canvas>
+        <div>
+          <div class="sum-stars" id="sumStars"></div>
+          <div class="sum-badge" id="sumBadge"></div>
+        </div>
+      </div>
+      <div class="sum-stats" id="sumStats"></div>
+
+      <h3>📊 주제별 결과</h3>
+      <div id="sumTopics"></div>
+      <p class="sum-tip" id="sumTip"></p>
+
+      <h3>📝 오늘 배운 것</h3>
+      <ul class="sum-points" id="sumPoints"></ul>
+
+      <h3>💬 오늘 활동은 어땠나요?</h3>
+      <div class="feelings">
+        <button class="feel" data-f="easy">😀<small>쉬웠어요</small></button>
+        <button class="feel" data-f="ok">🙂<small>할 만했어요</small></button>
+        <button class="feel" data-f="hard">😥<small>어려웠어요</small></button>
+      </div>
+      <p class="sum-thanks hidden" id="sumThanks">고마워요! 🙌 이 화면을 선생님께 보여 주세요.</p>
+
+      <div class="title-btns">
+        <button id="sumKeep">🌳 계속 탐험하기</button>
+        <button id="sumRestart" class="secondary">🔄 처음부터 다시</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/questions.js"></script>
+  <script src="../js/cube-config.js"></script>
+  <script src="../js/characters.js"></script>
+  <script src="../js/game.js"></script>
+  <script type="module" src="../js/multiplayer.js"></script>
+</body>
+</html>
