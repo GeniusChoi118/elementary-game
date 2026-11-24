@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>소수의 곱셈, 소수점 위치 정하는 법 (5학년 수학) | 초등 수학 모험</title>
+  <meta name="description" content="소수와 자연수의 곱셈, 소수끼리의 곱셈, 곱의 소수점 위치를 정하는 규칙, 10·100·1000과 0.1·0.01 곱하기, 어림으로 검산하는 법을 예제로 정리했어요.">
+  <link rel="canonical" href="https://elementary-game.pages.dev/learn/decimal-multiply/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="소수의 곱셈, 소수점 위치 정하는 법 (5학년 수학) | 초등 수학 모험">
+  <meta property="og:description" content="소수와 자연수의 곱셈, 소수끼리의 곱셈, 곱의 소수점 위치를 정하는 규칙, 10·100·1000과 0.1·0.01 곱하기, 어림으로 검산하는 법을 예제로 정리했어요.">
+  <meta property="og:url" content="https://elementary-game.pages.dev/learn/decimal-multiply/">
+  <meta property="og:locale" content="ko_KR">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="google-adsense-account" content="ca-pub-3145881267243661">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3145881267243661"
+     crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <a class="logo" href="/">🎒 초등 수학 모험</a>
+      <nav class="nav" aria-label="주요 메뉴"><a href="/">홈</a><a href="/cube/">큐브 왕국 모험</a><a href="/clock/">째깍 마을 모험</a><a href="/learn/cube/">직육면체 개념</a><a href="/learn/clock/">시각과 시간 개념</a><a href="/guide/">수업 활용</a><a href="/about/">소개</a></nav>
+    </div>
+  </header>
+  <main>
+
+    <p class="crumbs"><a href="/">홈</a> › <a href="/learn/">학습 자료</a> › 소수의 곱셈</p>
+    <h1>🔟 소수의 곱셈, 소수점 위치 정하는 법 (5학년 수학)</h1>
+    <p class="lead">소수의 곱셈은 자연수처럼 곱한 다음 <b>소수점만 제자리에 찍으면</b> 돼요. 어디에 찍어야 하는지 규칙과 그 이유, 어림으로 답을 확인하는 방법까지 알아봐요.</p>
+    <p class="updated">마지막 수정: 2026년 11월 24일</p>
+    <p class="updated">교과서 출판사에 따라 이 내용을 배우는 학기와 단원 순서가 다를 수 있어요.</p>
+
+    <div class="box">
+      <b>이 페이지에서 배우는 것</b>
+      <ol>
+        <li><a href="#dec-nat">(소수) × (자연수)</a></li>
+        <li><a href="#nat-dec">(자연수) × (소수)</a></li>
+        <li><a href="#dec-dec">(소수) × (소수)</a></li>
+        <li><a href="#point">10, 100, 1000과 0.1, 0.01 곱하기</a></li>
+        <li><a href="#estimate">어림으로 검산하기</a></li>
+        <li><a href="#practice">연습 문제</a></li>
+      </ol>
+    </div>
+
+    <h2 id="dec-nat">1. (소수) × (자연수)</h2>
+<p>0.3 × 4는 0.1이 3 × 4 = 12개이니까 1.2예요.</p>
+    <div class="key">0.3 × 4 = 1.2 &nbsp;&nbsp; 1.25 × 3 = 3.75</div>
+    <p>분수로 바꾸어 생각해도 같아요. 0.3 × 4 = <span class="fr"><span>3</span><span>10</span></span> × 4 = <span class="fr"><span>12</span><span>10</span></span> = 1.2</p>
+    <h2 id="nat-dec">2. (자연수) × (소수)</h2>
+<p>6 × 0.7은 "6의 0.7배"예요. 6 × 7 = 42에서 0.7은 7의 <span class="fr"><span>1</span><span>10</span></span>이니까 답도 42의 <span class="fr"><span>1</span><span>10</span></span>인 4.2예요.</p>
+    <p>1보다 작은 소수를 곱하면 처음 수보다 작아져요. 6 × 0.7 = 4.2 &lt; 6</p>
+    <h2 id="dec-dec">3. (소수) × (소수)</h2>
+<div class="key">자연수처럼 곱한 뒤, 곱하는 두 수의 소수점 아래 자릿수를 더한 만큼 소수점을 찍어요.</div>
+    <ul>
+      <li>0.4 × 0.6: 4 × 6 = 24, 자릿수 1 + 1 = 2 → <b>0.24</b></li>
+      <li>1.2 × 2.3: 12 × 23 = 276, 자릿수 1 + 1 = 2 → <b>2.76</b></li>
+      <li>0.25 × 0.4: 25 × 4 = 100, 자릿수 2 + 1 = 3 → 0.100 = <b>0.1</b></li>
+    </ul>
+    <p>왜 그럴까요? 0.4 × 0.6 = <span class="fr"><span>4</span><span>10</span></span> × <span class="fr"><span>6</span><span>10</span></span> = <span class="fr"><span>24</span><span>100</span></span>이에요. 분모 10 × 10 = 100이 되니까 소수 두 자리가 돼요.</p>
+    <div class="warn"><b>⚠️ 자주 하는 실수</b>0.25 × 0.4를 0.100에서 0을 지우지 않고 그대로 두는 것은 괜찮지만, 소수점을 찍기 전에 끝의 0을 먼저 지우면 틀려요. 100에서 0을 지워 1로 만든 뒤 세 자리를 세면 0.001이 되어 버려요. <b>소수점을 먼저 찍고, 그다음 끝의 0을 지우세요.</b></div>
+    <h2 id="point">4. 10, 100, 1000과 0.1, 0.01 곱하기</h2>
+<div class="table-wrap"><table>
+      <tr><th>곱하는 수</th><th>소수점 이동</th><th>예</th></tr>
+      <tr><td>× 10</td><td>오른쪽으로 1칸</td><td>3.6 × 10 = 36</td></tr>
+      <tr><td>× 100</td><td>오른쪽으로 2칸</td><td>3.6 × 100 = 360</td></tr>
+      <tr><td>× 1000</td><td>오른쪽으로 3칸</td><td>3.6 × 1000 = 3600</td></tr>
+      <tr><td>× 0.1</td><td>왼쪽으로 1칸</td><td>52 × 0.1 = 5.2</td></tr>
+      <tr><td>× 0.01</td><td>왼쪽으로 2칸</td><td>52 × 0.01 = 0.52</td></tr>
+    </table></div>
+    <p>소수점을 옮길 자리가 없으면 0을 채워요. 3.6 × 1000에서 3.6 → 36 → 360 → 3600처럼요.</p>
+    <h2 id="estimate">5. 어림으로 검산하기</h2>
+<p>소수점 위치가 맞는지 헷갈리면 <b>어림셈</b>으로 확인해요.</p>
+    <p>4.9 × 3.1을 계산했더니 1519가 나왔어요. 소수점은 어디에 찍어야 할까요? 4.9는 약 5, 3.1은 약 3이니까 답은 약 15예요. 그래서 <b>15.19</b>가 맞아요.</p>
+    <div class="tip"><b>💡 생활 속 어림</b>"1 L에 2.8 kg인 꿀 3.2 L는 몇 kg일까?" → 3 × 3 = 9쯤이니까 계산 결과 8.96 kg이 맞는지 바로 알 수 있어요.</div>
+
+    <h2 id="practice">6. 연습 문제</h2>
+    <p>먼저 스스로 풀고, 문제를 눌러 답과 풀이를 확인해 보세요.</p>
+    <details><summary>1. 0.7 × 8을 계산하세요.</summary><p class="ans">5.6</p><p>7 × 8 = 56, 소수 한 자리</p></details>
+    <details><summary>2. 2.5 × 1.4를 계산하세요.</summary><p class="ans">3.5</p><p>25 × 14 = 350, 소수 두 자리 → 3.50 = 3.5</p></details>
+    <details><summary>3. 0.12 × 0.3을 계산하세요.</summary><p class="ans">0.036</p><p>12 × 3 = 36, 소수 세 자리 → 0.036</p></details>
+    <details><summary>4. 7.08 × 10과 7.08 × 0.01을 계산하세요.</summary><p class="ans">70.8, 0.0708</p><p>× 10은 오른쪽 1칸, × 0.01은 왼쪽 2칸</p></details>
+    <details><summary>5. 1 m의 무게가 2.4 kg인 철근 0.5 m의 무게는?</summary><p class="ans">1.2 kg</p><p>2.4 × 0.5 = 1.2</p></details>
+    <details><summary>6. 음료수 한 병이 1.5 L예요. 6병은 모두 몇 L일까요?</summary><p class="ans">9 L</p><p>1.5 × 6 = 9.0 = 9</p></details>
+
+    <div class="box">
+      <b>📚 이어서 공부하기</b>
+      <p>소수의 곱셈을 익혔다면 <a href="/learn/average-probability/">평균과 가능성</a>에서 소수가 나오는 평균 계산도 연습해 보세요.</p>
+      <div class="btns"><a class="btn" href="/learn/">학습 자료 모음</a><a class="btn ghost" href="/cube/">큐브 왕국 모험</a></div>
+    </div>
+
+  </main>
+  <footer class="site-footer">
+    <div class="inner">
+      <nav aria-label="사이트 정보">
+        <a href="/about/">사이트 소개</a>
+        <a href="/learn/">학습 자료 모음</a>
+        <a href="/guide/">선생님·보호자 안내</a>
+        <a href="/privacy/">개인정보처리방침</a>
+        <a href="/terms/">이용약관</a>
+        <a href="/contact/">문의하기</a>
+      </nav>
+      <p>초등 수학 모험은 교과서 수학 단원을 게임으로 복습하는 무료 학습 사이트예요. 회원가입 없이 누구나 쓸 수 있어요.</p>
+      <p>© 2026 초등 수학 모험</p>
+    </div>
+  </footer>
+</body>
+</html>

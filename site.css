@@ -120,3 +120,7 @@ form button { margin-top: 16px; font: inherit; font-weight: 700; padding: 12px 2
   h1 { font-size: 1.55rem; }
   h2 { font-size: 1.25rem; }
 }
+
+/* 분수 표기 */
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.82em; line-height: 1.15; margin: 0 2px; }
+.fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 2px; }

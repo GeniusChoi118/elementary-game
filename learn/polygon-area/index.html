@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>다각형의 둘레와 넓이, 공식이 나오는 이유까지 (5학년 수학) | 초등 수학 모험</title>
+  <meta name="description" content="정다각형과 사각형의 둘레, 넓이 단위 cm²·m²·km², 직사각형·평행사변형·삼각형·마름모·사다리꼴의 넓이 공식과 공식이 나오는 이유를 예제와 함께 정리했어요.">
+  <link rel="canonical" href="https://elementary-game.pages.dev/learn/polygon-area/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="다각형의 둘레와 넓이, 공식이 나오는 이유까지 (5학년 수학) | 초등 수학 모험">
+  <meta property="og:description" content="정다각형과 사각형의 둘레, 넓이 단위 cm²·m²·km², 직사각형·평행사변형·삼각형·마름모·사다리꼴의 넓이 공식과 공식이 나오는 이유를 예제와 함께 정리했어요.">
+  <meta property="og:url" content="https://elementary-game.pages.dev/learn/polygon-area/">
+  <meta property="og:locale" content="ko_KR">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="google-adsense-account" content="ca-pub-3145881267243661">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3145881267243661"
+     crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <a class="logo" href="/">🎒 초등 수학 모험</a>
+      <nav class="nav" aria-label="주요 메뉴"><a href="/">홈</a><a href="/cube/">큐브 왕국 모험</a><a href="/clock/">째깍 마을 모험</a><a href="/learn/cube/">직육면체 개념</a><a href="/learn/clock/">시각과 시간 개념</a><a href="/guide/">수업 활용</a><a href="/about/">소개</a></nav>
+    </div>
+  </header>
+  <main>
+
+    <p class="crumbs"><a href="/">홈</a> › <a href="/learn/">학습 자료</a> › 다각형의 둘레와 넓이</p>
+    <h1>📐 다각형의 둘레와 넓이, 공식이 나오는 이유까지 (5학년 수학)</h1>
+    <p class="lead">넓이 공식은 다섯 개가 넘어서 외우기만 하면 금방 헷갈려요. 그런데 모든 공식은 <b>직사각형 넓이 하나</b>에서 출발해요. 도형을 자르고 옮기고 붙여서 직사각형으로 바꾸는 원리를 이해하면 공식을 잊어도 다시 만들어 낼 수 있어요.</p>
+    <p class="updated">마지막 수정: 2026년 11월 24일</p>
+    <p class="updated">교과서 출판사에 따라 이 내용을 배우는 학기와 단원 순서가 다를 수 있어요.</p>
+
+    <div class="box">
+      <b>이 페이지에서 배우는 것</b>
+      <ol>
+        <li><a href="#perimeter">다각형의 둘레</a></li>
+        <li><a href="#unit">넓이의 단위</a></li>
+        <li><a href="#rect">직사각형과 정사각형의 넓이</a></li>
+        <li><a href="#para">평행사변형의 넓이</a></li>
+        <li><a href="#tri">삼각형의 넓이</a></li>
+        <li><a href="#rhombus">마름모의 넓이</a></li>
+        <li><a href="#trap">사다리꼴의 넓이</a></li>
+        <li><a href="#practice">연습 문제</a></li>
+      </ol>
+    </div>
+
+    <h2 id="perimeter">1. 다각형의 둘레</h2>
+<div class="table-wrap"><table>
+      <tr><th>도형</th><th>둘레 구하는 식</th></tr>
+      <tr><td>정다각형</td><td>한 변의 길이 × 변의 수</td></tr>
+      <tr><td>직사각형</td><td>(가로 + 세로) × 2</td></tr>
+      <tr><td>평행사변형</td><td>(한 변 + 다른 한 변) × 2</td></tr>
+      <tr><td>마름모</td><td>한 변의 길이 × 4</td></tr>
+    </table></div>
+    <p>정오각형의 한 변이 7 cm라면 둘레는 7 × 5 = 35 cm예요.</p>
+    <h2 id="unit">2. 넓이의 단위</h2>
+<ul>
+      <li><b>1 cm²</b>: 한 변이 1 cm인 정사각형의 넓이</li>
+      <li><b>1 m²</b>: 한 변이 1 m인 정사각형의 넓이 = 100 cm × 100 cm = <b>10000 cm²</b></li>
+      <li><b>1 km²</b>: 한 변이 1 km인 정사각형의 넓이 = 1000 m × 1000 m = <b>1000000 m²</b></li>
+    </ul>
+    <div class="warn"><b>⚠️ 자주 하는 실수</b>1 m = 100 cm이니까 1 m² = 100 cm²라고 생각하기 쉬워요. 넓이는 가로와 세로를 곱하니까 100 × 100 = 10000 cm²예요.</div>
+    <h2 id="rect">3. 직사각형과 정사각형의 넓이</h2>
+<p>직사각형 안에 1 cm² 정사각형이 가로로 몇 개, 세로로 몇 줄 들어가는지 세면 넓이가 나와요.</p>
+    <div class="key">직사각형의 넓이 = 가로 × 세로 &nbsp;&nbsp; 정사각형의 넓이 = 한 변 × 한 변</div>
+    <p>가로 9 cm, 세로 6 cm인 직사각형의 넓이는 54 cm²예요.</p>
+    <h2 id="para">4. 평행사변형의 넓이</h2>
+<p>평행사변형의 한쪽 끝을 높이를 따라 삼각형 모양으로 잘라 반대쪽에 붙이면 직사각형이 돼요. 이때 직사각형의 가로는 평행사변형의 <b>밑변</b>, 세로는 <b>높이</b>예요.</p>
+    <div class="key">평행사변형의 넓이 = 밑변 × 높이</div>
+    <p>밑변 8 cm, 높이 5 cm → 40 cm²</p>
+    <div class="warn"><b>⚠️ 높이는 수직인 길이</b>비스듬한 옆변의 길이를 높이로 곱하는 실수가 아주 많아요. 높이는 밑변과 <b>수직으로</b> 잰 길이예요. 그림에서 직각 표시(ㄴ)가 있는 선분을 찾으세요.</div>
+    <h2 id="tri">5. 삼각형의 넓이</h2>
+<p>똑같은 삼각형 두 개를 돌려서 붙이면 평행사변형이 돼요. 그래서 삼각형은 평행사변형의 절반이에요.</p>
+    <div class="key">삼각형의 넓이 = 밑변 × 높이 ÷ 2</div>
+    <p>밑변 10 cm, 높이 6 cm → 10 × 6 ÷ 2 = 30 cm²</p>
+    <p>밑변과 높이가 같은 삼각형은 모양이 달라도 넓이가 모두 같아요.</p>
+    <h2 id="rhombus">6. 마름모의 넓이</h2>
+<p>마름모를 둘러싸는 직사각형을 그리면, 직사각형의 가로와 세로가 마름모의 두 대각선과 같아요. 마름모는 그 직사각형의 절반이에요.</p>
+    <div class="key">마름모의 넓이 = 한 대각선 × 다른 대각선 ÷ 2</div>
+    <p>두 대각선이 12 cm, 8 cm → 12 × 8 ÷ 2 = 48 cm²</p>
+    <h2 id="trap">7. 사다리꼴의 넓이</h2>
+<p>똑같은 사다리꼴 두 개를 거꾸로 붙이면 평행사변형이 돼요. 이 평행사변형의 밑변은 (윗변 + 아랫변)이에요.</p>
+    <div class="key">사다리꼴의 넓이 = (윗변 + 아랫변) × 높이 ÷ 2</div>
+    <p>윗변 4 cm, 아랫변 10 cm, 높이 6 cm → (4 + 10) × 6 ÷ 2 = 42 cm²</p>
+    <div class="tip"><b>💡 공식 정리 요령</b>"÷ 2"가 붙는 도형은 삼각형, 마름모, 사다리꼴이에요. 셋 다 "두 개를 붙이거나 둘러싸면 평행사변형·직사각형이 되는 도형"이라고 기억하세요.</div>
+
+    <h2 id="practice">8. 연습 문제</h2>
+    <p>먼저 스스로 풀고, 문제를 눌러 답과 풀이를 확인해 보세요.</p>
+    <details><summary>1. 둘레가 30 cm이고 가로가 9 cm인 직사각형의 세로와 넓이는?</summary><p class="ans">세로 6 cm, 넓이 54 cm²</p><p>30 ÷ 2 = 15, 15 − 9 = 6, 9 × 6 = 54</p></details>
+    <details><summary>2. 3 m²는 몇 cm²일까요?</summary><p class="ans">30000 cm²</p><p>1 m² = 10000 cm²</p></details>
+    <details><summary>3. 넓이가 24 cm²이고 밑변이 8 cm인 삼각형의 높이는?</summary><p class="ans">6 cm</p><p>8 × □ ÷ 2 = 24, 8 × □ = 48, □ = 6</p></details>
+    <details><summary>4. 윗변 5 cm, 아랫변 9 cm, 높이 4 cm인 사다리꼴의 넓이는?</summary><p class="ans">28 cm²</p><p>(5 + 9) × 4 ÷ 2 = 28</p></details>
+    <details><summary>5. 한 변이 5 cm인 정사각형과 두 대각선이 10 cm, 6 cm인 마름모 중 넓이가 더 넓은 것은?</summary><p class="ans">마름모 (30 cm²)</p><p>정사각형 25 cm², 마름모 10 × 6 ÷ 2 = 30 cm²</p></details>
+
+    <div class="box">
+      <b>📚 이어서 공부하기</b>
+      <p>평면도형의 넓이를 익혔다면 입체도형도 살펴보세요. <a href="/learn/cube/">직육면체와 정육면체</a>에서 면과 모서리를 배울 수 있어요.</p>
+      <div class="btns"><a class="btn" href="/learn/">학습 자료 모음</a><a class="btn ghost" href="/cube/">큐브 왕국 모험</a></div>
+    </div>
+
+  </main>
+  <footer class="site-footer">
+    <div class="inner">
+      <nav aria-label="사이트 정보">
+        <a href="/about/">사이트 소개</a>
+        <a href="/learn/">학습 자료 모음</a>
+        <a href="/guide/">선생님·보호자 안내</a>
+        <a href="/privacy/">개인정보처리방침</a>
+        <a href="/terms/">이용약관</a>
+        <a href="/contact/">문의하기</a>
+      </nav>
+      <p>초등 수학 모험은 교과서 수학 단원을 게임으로 복습하는 무료 학습 사이트예요. 회원가입 없이 누구나 쓸 수 있어요.</p>
+      <p>© 2026 초등 수학 모험</p>
+    </div>
+  </footer>
+</body>
+</html>
